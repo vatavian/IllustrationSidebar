@@ -1,5 +1,5 @@
-# IllustrationSidebar
-AI-generated illustrations appear in the sidebar based on the web page you are reading.
+# Illustration Sidebar Browser Extension
+AI-generated illustrations appear in the web browser sidebar based on the web page you are reading.
 
 I read a lot of stories on the web.
 I enjoy having illustrations when I read, but most stories do not have any.
