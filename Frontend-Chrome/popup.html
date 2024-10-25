@@ -1,0 +1,43 @@
+<link href="popup.css" rel="stylesheet" type="text/css" />
+<script type="module" src="popup.js"></script>
+
+<div class="main-container">
+  <div>
+    <div class="title">Illustrator
+      <button id="hide" class="top-right" alt="hide">...</button>
+    </div>
+    <hr />
+    <div id="settings">
+      <div class="settings-container" style="display: none;">
+        <label class="setting-label" for="url-input-field">API URL</label>
+        <input class="text-input" type="text" id="url-input-field" />
+        <button id="test-api">Test</button>
+      </div>
+      <div class="settings-container">
+        <label class="setting-label" for="websites-input-field">Sites to Illustrate</label>
+        <textarea id="websites-input-field" rows="5", cols="25" wrap="hard" spellcheck="false"></textarea>
+      </div>
+      <div class="settings-container">
+        <button id="addsite" display="none">Add</button>
+      </div>
+        <div class="settings-container">
+        <button id="run">Start</button>
+      </div>
+      <div class="settings-container">
+        <label class="setting-label" for="style-field">Style Hints</label>
+        <textarea id="style-field" rows="1", cols="25" wrap="hard" spellcheck="false"></textarea>
+      </div>
+      <div class="settings-container">
+        <label class="setting-label" for="fulltext-field">Full Text</label>
+        <textarea id="fulltext-field" rows="2", cols="25" wrap="hard" spellcheck="false"></textarea>
+        <button id="test-fulltext">Text To Prompt</button>
+      </div>
+      <div class="settings-container">
+        <label class="setting-label" for="prompt-field">Image Prompt</label>
+        <textarea id="prompt-field" rows="2", cols="25" wrap="hard" spellcheck="false"></textarea>
+        <button id="test-prompt">Prompt to Image</button>
+      </div>
+    </div>
+  </div>
+  <img src="Paintbrush64.png" id="generated-image">
+</div>

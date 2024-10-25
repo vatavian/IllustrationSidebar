@@ -1,0 +1,25 @@
+{
+  "name": "Illustrator",
+  "version": "0.0.1",
+  "description": "Display a generated image to complement the current page",
+  "permissions": ["activeTab", "scripting", "storage", "tabs", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_icon": {
+      "16": "Paintbrush64.png",
+      "24": "Paintbrush64.png",
+      "32": "Paintbrush64.png",
+      "64": "Paintbrush64.png",
+      "128": "Paintbrush64.png"
+    },
+    "default_title": "Illustrator"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "manifest_version": 3
+}
