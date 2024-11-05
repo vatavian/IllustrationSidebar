@@ -1,15 +1,18 @@
+import { aiStorageListener } from './ai.js';
 var websites = [];
 
 const setWebsitesFromString = ((str) => {
     if (str) websites = str.split(/[\n,\s+]/)
 });
 
+chrome.storage.local.get("websites", (result) => {
+    setWebsitesFromString(result.websites);
+});
+
 chrome.runtime.onInstalled.addListener(({reason}) => {
     if (reason === 'install') {
-    chrome.tabs.create({
-        url: "popup.html"
-    });
-}
+        chrome.tabs.create({ url: "popup.html" });
+    }
 });
 
 const injectContent = (async (tab) => {
@@ -29,6 +32,8 @@ const injectContent = (async (tab) => {
         } catch(e1) {
             console.log('Illustrator: Unable to inject in', tab, e1);
         }
+    else
+        console.log("Not injecting in tab", tab.url, "websites:", websites);
 });
 
 const injectInActiveTab = (() => {
@@ -42,21 +47,23 @@ const injectInActiveTab = (() => {
     })
 })
 
-async function storageChangeListener(changes, area) {
+async function backgroundStorageListener(changes, area) {
     if (area === 'local') {
-        // console.log('storage.onChanged', JSON.stringify(changes));
+        // console.log('backgroundStorageListener', JSON.stringify(changes));
         if (changes?.websites?.newValue) {
             setWebsitesFromString(changes?.websites?.newValue);
             injectInActiveTab();
         }
         if (changes?.activeTab?.newValue) {
+            console.log('backgroundStorageListener: activeTab');
             injectInActiveTab();
             chrome.storage.local.set({ activeTab: false }); 
         }
     }
 };
 
-chrome.storage.onChanged.addListener(storageChangeListener);
+chrome.storage.onChanged.addListener(backgroundStorageListener);
+chrome.storage.onChanged.addListener(aiStorageListener);
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     console.log("tabs.onUpdated", JSON.stringify(changeInfo));
@@ -67,10 +74,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 //     injectInActiveTab();
 // });
 
-async function initWebsitesFromStorage() {
-    return chrome.storage.local.get("websites", (result) => {
-        setWebsitesFromString(result.websites);
-    });
-};
-
-initWebsitesFromStorage();
+// Open the side panel when extension toolbar icon is clicked
+chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error(error));

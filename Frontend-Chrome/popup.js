@@ -1,6 +1,6 @@
-const urlInput = document.getElementById("url-input-field");
+// const urlInput = document.getElementById("url-input-field");
+// const testApiButton = document.getElementById("test-api");
 const runButton = document.getElementById("run");
-const testApiButton = document.getElementById("test-api");
 const websitesInput = document.getElementById("websites-input-field");
 const addSiteButton = document.getElementById("addsite");
 
@@ -19,8 +19,9 @@ hideButton.addEventListener("click",() => {
       .forEach((element) => element.classList.toggle('is-hidden'));
 })
 
-chrome.storage.local.get(["apiURL", "websites"], (result) => {
-    urlInput.value = result.apiURL || "";
+chrome.storage.local.get(["websites", "styleText"], (result) => {
+    // urlInput.value = result.apiURL || "";
+    styleInput.value = result.styleText || "";
     websitesInput.value = result.websites || "scribblehub.com/read/\n";
     const sitesArray = websitesInput.value.split("\n");
     websitesInput.rows = sitesArray.length + 1
@@ -44,96 +45,54 @@ chrome.storage.local.get(["apiURL", "websites"], (result) => {
     });
 });
 
-testApiButton.addEventListener("click",() => {
-    chrome.tabs.create({url: urlInput.value, selected: true, active: true});
-    chrome.storage.local.set({
-        apiURL: urlInput.value.trim()
-    }); 
-})
+// testApiButton.addEventListener("click",() => {
+//     chrome.tabs.create({url: urlInput.value, selected: true, active: true});
+//     chrome.storage.local.set({
+//         apiURL: urlInput.value.trim()
+//     }); 
+// })
 
 runButton.addEventListener("click",() => {
+    console.log("Running...")
     chrome.storage.local.set({
-        apiURL: urlInput.value.trim(),
+        // apiURL: urlInput.value.trim(),
         websites: websitesInput.value.trim(),
         activeTab: true,
     }); 
 })
 
 testFullTextButton.addEventListener("click",() => {
-    fetchPromptFromFullText("https://text.pollinations.ai/openai", fullTextInput.value);
+    promptInput.value = ""
+    chrome.storage.local.set({ fullText: fullTextInput.value, styleText: styleInput.value }); 
 })
 
 testPromptButton.addEventListener("click",() => {
-    fetchImageFromPrompt();
+    imgElement.src = "";
+    chrome.storage.local.set({ promptText: null });
+    chrome.storage.local.set({ promptText: promptInput.value.trim() });
 })
 
-async function fetchImageFromPrompt() {
-    imgElement.src = "";
-    const imgURL = new URL("https://image.pollinations.ai/prompt/" + encodeURIComponent(promptInput.value.replace(' ','_')));
+const setImgFromPrompt = () => {
+    const escapedText = encodeURIComponent(promptInput.value.replaceAll(' ','_'))
+    const imgURL = new URL("https://image.pollinations.ai/prompt/" + escapedText);
     imgURL.searchParams.append("nologo", "true");
+    // console.log(imgURL, "toString:", imgURL.toString());
     imgElement.src = imgURL;
+    console.log("imgElement.src:", imgElement.src);
 }
 
-async function storageChangeListener(changes, area) {
-    console.log('storage.onChanged', JSON.stringify(changes));
+chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local') {
-        if (changes?.pageText?.newValue) {
-            fullTextInput.value = changes.pageText.newValue.trim();
-            fetchPromptFromFullText("https://text.pollinations.ai/openai", changes.pageText.newValue);
+        console.log('popupStorageListener', JSON.stringify(changes).substring(0,80));
+        if (changes?.fullText?.newValue) {
+            imgElement.src = "";
+            fullTextInput.value = changes.fullText.newValue;
+        }
+        if (changes?.promptText?.newValue) {
+            promptInput.value = changes.promptText.newValue;
+            setImgFromPrompt();
         }
     }
-};
+});
 
-chrome.storage.onChanged.addListener(storageChangeListener);
-
-async function fetchPromptFromFullText(url, fullText) {
-    promptInput.value = "fetching..."
-    console.log("Illustrator: fetching prompt:", url);
-    var sysPrompt = "Each user prompt is a story that needs an illustration. You reply with a prompt for an image generator that will create the illustration";
-    if (styleInput?.value?.length > 1)
-        sysPrompt += ". Include the following style hints in the prompt: " + styleInput.value;
-
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "messages": [
-            {
-                "role": "system",
-                "content": sysPrompt
-            },
-            {
-                "role": "user",
-                "content": fullText
-            }
-            ]
-        })
-    };
-    console.log(options);
-    return fetch(url, options)
-        .then(response => {
-            if(!response.ok)
-                return response.text().then(text => {throw text})
-            else
-                return response.json()})
-        .then(json => {
-            if (json.choices) {
-                console.log('Illustrator: choices', json.choices);
-                const tagEndText = "**\n\n";
-                const promptText = json.choices[0].message.content
-                const unnecessaryTagEnd = promptText.indexOf(tagEndText);
-                if (unnecessaryTagEnd > 0 && unnecessaryTagEnd < 80)
-                    promptInput.value = promptText.substring(unnecessaryTagEnd + tagEndText.length);
-                else
-                    promptInput.value = promptText;
-                fetchImageFromPrompt();
-            } else {
-                promptInput.value = JSON.stringify(json);
-            }
-        })
-        .catch(error => {
-            console.log('Illustrator: fetch:', error);
-        });
-}
+chrome.tabs.reload();
